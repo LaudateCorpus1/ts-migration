@@ -1,7 +1,7 @@
 import * as babel from "@babel/core";
 // @ts-ignore
 import dynamicImport from "@babel/plugin-syntax-dynamic-import";
-import recast from "recast";
+import * as recast from "recast";
 import { writeFileSync } from "fs";
 import plugin from "babel-plugin-flow-to-typescript";
 import { asyncForEach } from "./util";

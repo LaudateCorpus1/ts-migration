@@ -16,7 +16,17 @@
 
 import * as t from '@babel/types';
 
-export type Node = t.BaseNode;
+interface BaseNode {
+    leadingComments: t.Node["leadingComments"];
+    innerComments: t.Node["innerComments"];
+    trailingComments: t.Node["trailingComments"];
+    start: t.Node["start"];
+    end: t.Node["end"];
+    loc: t.Node["loc"];
+    type: t.Node["type"];
+}  
+
+export type Node = BaseNode;
 
 //tslint:disable:no-any
 export default function traverse(parent: Node | Node[], opts?: TraverseOptions, scope?: Scope, state?: any, parentPath?: NodePath): void;
@@ -602,7 +612,7 @@ export class NodePath<T = Node> {
     getSibling(key: string): NodePath;
 
     get<K extends keyof T>(key: K, context?: boolean | TraversalContext): NodePath<T[K]>;
-    get<U = t.BaseNode>(key: string, context?: boolean | TraversalContext): NodePath<U>;
+    get<U = BaseNode>(key: string, context?: boolean | TraversalContext): NodePath<U>;
 
     getBindingIdentifiers(duplicates?: boolean): Node[];
 
