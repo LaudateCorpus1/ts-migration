@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -21,24 +22,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const babel = __importStar(require("@babel/core"));
 // @ts-ignore
 const plugin_syntax_dynamic_import_1 = __importDefault(require("@babel/plugin-syntax-dynamic-import"));
-const recast_1 = __importDefault(require("recast"));
+const recast = __importStar(require("recast"));
 const fs_1 = require("fs");
 const babel_plugin_flow_to_typescript_1 = __importDefault(require("babel-plugin-flow-to-typescript"));
 const util_1 = require("./util");
 const prettierFormat_1 = __importDefault(require("./prettierFormat"));
-const stripComments_1 = require("./stripComments");
 function recastParse(code, options, parse) {
-    return recast_1.default.parse(code, {
+    return recast.parse(code, {
         parser: {
             parse: (code) => {
-                return parse(code, Object.assign({}, options, { tokens: true }));
+                return parse(code, Object.assign(Object.assign({}, options), { tokens: true }));
             }
         }
     });
 }
 function buildRecastGenerate(rootDir = global.process.cwd()) {
     return function recastGenerate(ast) {
-        const file = recast_1.default.print(ast);
+        const file = recast.print(ast);
         file.code = prettierFormat_1.default(file.code, rootDir);
         return file;
     };
@@ -61,7 +61,6 @@ function convert(files, rootDir) {
             let res;
             try {
                 res = yield babel.transformFileAsync(path, exports.babelOptions(rootDir));
-                res.code = stripComments_1.stripComments(res.code, ["// @flow", "// @noflow"])[0];
             }
             catch (err) {
                 console.log(err);

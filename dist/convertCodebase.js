@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -19,11 +20,17 @@ const collectFiles_1 = __importDefault(require("./collectFiles"));
 const converter_1 = __importDefault(require("./converter"));
 const util_2 = require("./util");
 const commitAll_1 = __importDefault(require("./commitAll"));
+const containsFlowPragma_1 = __importDefault(require("./containsFlowPragma"));
 const exists = util_1.promisify(fs_1.default.exists);
-function process(filePaths, shouldCommit, filesFromCLI) {
+function containsReact(path) {
+    const file = fs_1.default.readFileSync(path, "utf8");
+    return file.includes("from 'react';");
+}
+function process(filePaths, shouldCommit, filesFromCLI, forceTsx, requireFlowPragma) {
     return __awaiter(this, void 0, void 0, function* () {
         const git = promise_1.default(filePaths.rootDir);
-        const files = filesFromCLI || (yield collectFiles_1.default(filePaths));
+        const collectedFiles = filesFromCLI || (yield collectFiles_1.default(filePaths));
+        const files = requireFlowPragma ? (yield util_2.asyncFilter(collectedFiles, containsFlowPragma_1.default)) : collectedFiles;
         console.log(`Converting ${files.length} files`);
         const { successFiles, errorFiles } = yield converter_1.default(files, filePaths.rootDir);
         console.log(`${successFiles.length} converted successfully.`);
@@ -57,17 +64,13 @@ function process(filePaths, shouldCommit, filesFromCLI) {
                     }
                 });
             }
-            function containsReact(path) {
-                const file = fs_1.default.readFileSync(path, "utf8");
-                return file.includes("from 'react';");
-            }
             yield util_2.asyncForEach(successFiles, (path, i) => __awaiter(this, void 0, void 0, function* () {
                 console.log(`${i + 1} of ${successFiles.length}: Renaming ${path}`);
                 try {
                     const parsedPath = path_1.default.parse(path);
                     const oldExt = parsedPath.ext;
                     const newExt = (() => {
-                        if (oldExt === "jsx")
+                        if (forceTsx || oldExt === "jsx")
                             return ".tsx";
                         return containsReact(path) ? ".tsx" : ".ts";
                     })();
