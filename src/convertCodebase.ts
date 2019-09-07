@@ -1,7 +1,6 @@
 import pathUtils from "path";
 
 import fs from "fs";
-import readline from "readline";
 
 import { promisify } from "util";
 import simplegit from "simple-git/promise";
@@ -11,35 +10,9 @@ import convert from "./converter";
 import { asyncForEach, asyncFilter } from "./util";
 import commit from "./commitAll";
 import { FilePaths } from "./cli";
+import containsFlowPragma from "./containsFlowPragma";
 
 const exists = promisify(fs.exists);
-
-const flowPragmas = [
-  '// @flow',
-  '// @flow strict',
-  '/* @flow */',
-  '/* @flow strict */',
-];
-
-function containsFlowPragma(path: string): Promise<boolean> {
-  return new Promise(resolve => {
-    const rl = readline.createInterface({
-      input: fs.createReadStream(path),
-      crlfDelay: Infinity,
-    });
-
-    rl.on('line', line => {
-      if (flowPragmas.includes(line.trim())) {
-        resolve(true);
-        rl.close();
-      }
-    });
-
-    rl.on('close', () => {
-      resolve(false);
-    })
-  });
-}
 
 export default async function process(
   filePaths: FilePaths,

@@ -5,6 +5,7 @@ import ignoreErrors from "./ignoreErrorsRunner";
 import ignoreFileErrors from "./ignoreFileErrorsRunner";
 import convertCodebase from "./convertCodebase";
 import checkTypes from "./checkRunner";
+import stripUncheckedFlowTypes from "./stripUncheckedFlowTypes/runner";
 
 const rootDir = process.cwd();
 
@@ -122,5 +123,18 @@ program
 
     checkTypes(filePaths);
   });
+
+program
+  .command("strip-unchecked-flow-types")
+  .option("-c, --commit")
+  .action((cmd: { commit: boolean | undefined }) => {
+    console.log("Stripping Flow annotations from files without @flow pragma...")
+    const paths = {
+      ...filePaths,
+      extensions: [".js", ".jsx"]
+    };
+    console.log(paths);
+    stripUncheckedFlowTypes(paths, !!cmd.commit);
+  })
 
 program.parse(process.argv);
