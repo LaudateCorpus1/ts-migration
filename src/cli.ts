@@ -19,8 +19,8 @@ export interface FilePaths {
 
 const filePaths: FilePaths = {
   rootDir,
-  include: configJSON.config.include,
-  exclude: [],
+  include: configJSON.config.include || ["/"],
+  exclude: ["node_modules"],
   extensions: [".ts", ".tsx"]
 };
 
