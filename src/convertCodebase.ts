@@ -1,26 +1,56 @@
 import pathUtils from "path";
 
 import fs from "fs";
+import readline from "readline";
 
 import { promisify } from "util";
 import simplegit from "simple-git/promise";
 
 import collectFiles from "./collectFiles";
 import convert from "./converter";
-import { asyncForEach } from "./util";
+import { asyncForEach, asyncFilter } from "./util";
 import commit from "./commitAll";
 import { FilePaths } from "./cli";
 
 const exists = promisify(fs.exists);
 
+const flowPragmas = [
+  '// @flow',
+  '// @flow strict',
+  '/* @flow */',
+  '/* @flow strict */',
+];
+
+function containsFlowPragma(path: string): Promise<boolean> {
+  return new Promise(resolve => {
+    const rl = readline.createInterface({
+      input: fs.createReadStream(path),
+      crlfDelay: Infinity,
+    });
+
+    rl.on('line', line => {
+      if (flowPragmas.includes(line.trim())) {
+        resolve(true);
+        rl.close();
+      }
+    });
+
+    rl.on('close', () => {
+      resolve(false);
+    })
+  });
+}
+
 export default async function process(
   filePaths: FilePaths,
   shouldCommit: boolean,
-  filesFromCLI: string[] | undefined
+  filesFromCLI: string[] | undefined,
+  requireFlowPragma: boolean
 ) {
   const git = simplegit(filePaths.rootDir);
 
-  const files = filesFromCLI || (await collectFiles(filePaths));
+  const collectedFiles = filesFromCLI || (await collectFiles(filePaths));
+  const files = requireFlowPragma ? (await asyncFilter(collectedFiles, containsFlowPragma)) : collectedFiles;
 
   console.log(`Converting ${files.length} files`);
   const { successFiles, errorFiles } = await convert(files, filePaths.rootDir);

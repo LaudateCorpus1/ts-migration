@@ -54,11 +54,16 @@ program
     "A comma-seperated list of strings to exclude",
     (f: string) => f.split(",")
   )
+  .option(
+    "--no-require-flow-pragma",
+    "Convert all files even if they don't have a @flow comment"
+  )
   .action(
     (cmd: {
       commit: boolean | undefined;
       files: string[] | undefined;
       exclude: string[] | undefined;
+      requireFlowPragma: boolean;
     }) => {
       console.log("Converting the codebase from Flow to Typescript");
       const paths = {
@@ -67,7 +72,7 @@ program
         extensions: [".js", ".jsx"]
       };
       console.log(paths);
-      convertCodebase(paths, !!cmd.commit, cmd.files);
+      convertCodebase(paths, !!cmd.commit, cmd.files, cmd.requireFlowPragma);
     }
   );
 
