@@ -56,6 +56,10 @@ program
     (f: string) => f.split(",")
   )
   .option(
+    "--no-force-tsx",
+    "Use a .ts extension if there is no JSX"
+  )
+  .option(
     "--no-require-flow-pragma",
     "Convert all files even if they don't have a @flow comment"
   )
@@ -64,6 +68,7 @@ program
       commit: boolean | undefined;
       files: string[] | undefined;
       exclude: string[] | undefined;
+      forceTsx: boolean;
       requireFlowPragma: boolean;
     }) => {
       console.log("Converting the codebase from Flow to Typescript");
@@ -73,7 +78,7 @@ program
         extensions: [".js", ".jsx"]
       };
       console.log(paths);
-      convertCodebase(paths, !!cmd.commit, cmd.files, cmd.requireFlowPragma);
+      convertCodebase(paths, !!cmd.commit, cmd.files, cmd.forceTsx, cmd.requireFlowPragma);
     }
   );
 

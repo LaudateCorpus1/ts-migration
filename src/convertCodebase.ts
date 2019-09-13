@@ -14,10 +14,16 @@ import containsFlowPragma from "./containsFlowPragma";
 
 const exists = promisify(fs.exists);
 
+function containsReact(path: string) {
+  const file = fs.readFileSync(path, "utf8");
+  return file.includes("from 'react';");
+}
+
 export default async function process(
   filePaths: FilePaths,
   shouldCommit: boolean,
   filesFromCLI: string[] | undefined,
+  forceTsx: boolean,
   requireFlowPragma: boolean
 ) {
   const git = simplegit(filePaths.rootDir);
@@ -62,11 +68,6 @@ export default async function process(
       }
     }
 
-    function containsReact(path: string) {
-      const file = fs.readFileSync(path, "utf8");
-      return file.includes("from 'react';");
-    }
-
     await asyncForEach(successFiles, async (path, i) => {
       console.log(`${i + 1} of ${successFiles.length}: Renaming ${path}`);
       try {
@@ -74,7 +75,7 @@ export default async function process(
         const oldExt = parsedPath.ext;
 
         const newExt = (() => {
-          if (oldExt === "jsx") return ".tsx";
+          if (forceTsx || oldExt === "jsx") return ".tsx";
           return containsReact(path) ? ".tsx" : ".ts";
         })();
 
