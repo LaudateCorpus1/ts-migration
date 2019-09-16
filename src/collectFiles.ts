@@ -7,36 +7,34 @@ import { resolve } from "path";
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 
-async function getFiles(dir: string): Promise<string[]> {
-  const subdirs = await readdir(dir);
-  const files = await Promise.all(
-    subdirs.map(async (subdir: string) => {
-      const res = resolve(dir, subdir);
-      return (await stat(res)).isDirectory() ? getFiles(res) : res;
-    })
-  );
-  // @ts-ignore
-  return files.reduce((a, f) => a.concat(f), [] as string[]);
-}
-
-export default async function collectFiles(paths: {
+type Paths = {
   rootDir: string;
   include: string[];
   exclude: string[];
   extensions: string[];
-}) {
-  const filesArr = await Promise.all(
-    paths.include.map(includeDir =>
-      getFiles(path.join(paths.rootDir, includeDir))
-    )
-  );
-  const files = filesArr.reduce((a, f) => a.concat(f), [] as string[]);
+}
 
-  const filesWithExtensions = files.filter(f => {
-    return paths.extensions.some(e => f.endsWith(e));
-  });
-  const filesWithoutExclusions = filesWithExtensions.filter(f => {
-    return !paths.exclude.some(e => f.includes(e));
-  });
-  return filesWithoutExclusions;
+export default async function collectFiles(paths: Paths, dir?: string): Promise<string[]> {
+  const rootDir = dir != null ? dir : paths.rootDir;
+  const subdirs = dir != null ? await readdir(dir) : paths.include.map(include => path.join(rootDir, include));
+
+  const files = await Promise.all(
+    subdirs.map(async (subdir: string) => {
+      const res = resolve(rootDir, subdir);
+      if (paths.exclude.some(e => res.includes(e))) {
+        return [];
+      }
+
+      if ((await stat(res)).isDirectory()) {
+        return collectFiles(paths, res);
+      }
+
+      if (!paths.extensions.some(e => res.endsWith(e))) {
+        return [];
+      }
+
+      return res;
+    })
+  );
+  return files.flat();
 }
