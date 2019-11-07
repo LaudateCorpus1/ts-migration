@@ -1,4 +1,5 @@
 import fs from "fs";
+import * as prettier from "prettier";
 
 import collectFiles from "../collectFiles";
 import { asyncForEach, asyncFilter } from "../util";
@@ -8,6 +9,10 @@ import containsFlowPragma from "../containsFlowPragma";
 
 import check from "./check";
 import rewrite from "./rewrite";
+
+function prettierFormat(code: string, filepath: string) {
+  return prettier.format(code, { ...prettier.resolveConfig.sync(filepath), filepath });
+}
 
 export default async function run(
   filePaths: FilePaths,
@@ -32,7 +37,8 @@ export default async function run(
       }
 
       console.log(`- Stripping Flow types...`);
-      fs.writeFileSync(path, rewrite(code));
+      const newCode = prettierFormat(rewrite(code), path);
+      fs.writeFileSync(path, newCode);
       numFilesMatched += 1;
     } catch (e) {
       console.log(e);
