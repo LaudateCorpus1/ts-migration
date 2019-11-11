@@ -3,7 +3,6 @@ import { createTSCompiler } from "./tsCompilerHelpers";
 import stripComments from "./stripCommentsRunner";
 import ignoreErrors from "./ignoreErrorsRunner";
 import convertCodebase from "./convertCodebase";
-import checkTypes from "./checkRunner";
 import stripUncheckedFlowTypes from "./stripUncheckedFlowTypes/runner";
 
 const rootDir = process.cwd();
@@ -109,15 +108,6 @@ program
       ignoreErrors(paths, !!cmd.commit, !cmd.noIgnoreJSX);
     }
   );
-
-program
-  .command("check-types")
-  .option("-c, --commit")
-  .action(() => {
-    console.log("Checking Typescript types and skipping ignored files...");
-
-    checkTypes(filePaths);
-  });
 
 program
   .command("strip-unchecked-flow-types")
