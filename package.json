@@ -15,8 +15,6 @@
   ],
   "version": "0.1.0",
   "scripts": {
-    "test": "jest",
-    "test-watch": "jest --watch",
     "build": "rm -rf dist && tsc",
     "watch": "tsc --watch",
     "dev-cli": "node -r ts-node/register --inspect src/cli.ts"
@@ -47,34 +45,14 @@
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
-    "@types/jest": "^24.0.18",
     "@types/lodash": "^4.14.138",
     "@types/node": "^12.7.3",
     "@types/prettier": "^1.18.2",
     "@types/react": "^16.9.2",
-    "babel-jest": "^24.9.0",
-    "babel-plugin-tester": "^7.0.1",
-    "jest": "^24.9.0",
     "react": "^16.9.0",
     "regenerator-runtime": "^0.13.3",
-    "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
     "tslint": "^5.19.0",
     "typescript": "^3.7.2"
-  },
-  "jest": {
-    "testURL": "http://localhost/",
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
   }
 }
