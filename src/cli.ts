@@ -2,6 +2,7 @@ import program from "commander";
 import { createTSCompiler } from "./tsCompilerHelpers";
 import stripComments from "./stripCommentsRunner";
 import ignoreErrors from "./ignoreErrorsRunner";
+import removeIgnores from "./removeIgnoresRunner";
 import convertCodebase from "./convertCodebase";
 import stripUncheckedFlowTypes from "./stripUncheckedFlowTypes/runner";
 
@@ -53,10 +54,7 @@ program
     "A comma-seperated list of strings to exclude",
     (f: string) => f.split(",")
   )
-  .option(
-    "--no-force-tsx",
-    "Use a .ts extension if there is no JSX"
-  )
+  .option("--no-force-tsx", "Use a .ts extension if there is no JSX")
   .option(
     "--no-require-flow-pragma",
     "Convert all files even if they don't have a @flow comment"
@@ -76,7 +74,13 @@ program
         extensions: [".js", ".jsx"]
       };
       console.log(paths);
-      convertCodebase(paths, !!cmd.commit, cmd.files, cmd.forceTsx, cmd.requireFlowPragma);
+      convertCodebase(
+        paths,
+        !!cmd.commit,
+        cmd.files,
+        cmd.forceTsx,
+        cmd.requireFlowPragma
+      );
     }
   );
 
@@ -109,17 +113,25 @@ program
     }
   );
 
+program.command("remove-ignores").action(() => {
+  console.log("Stripping @ts-ignore...");
+  console.log(filePaths);
+  removeIgnores(filePaths);
+});
+
 program
   .command("strip-unchecked-flow-types")
   .option("-c, --commit")
   .action((cmd: { commit: boolean | undefined }) => {
-    console.log("Stripping Flow annotations from files without @flow pragma...")
+    console.log(
+      "Stripping Flow annotations from files without @flow pragma..."
+    );
     const paths = {
       ...filePaths,
       extensions: [".js", ".jsx"]
     };
     console.log(paths);
     stripUncheckedFlowTypes(paths, !!cmd.commit);
-  })
+  });
 
 program.parse(process.argv);
