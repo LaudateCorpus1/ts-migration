@@ -1,6 +1,6 @@
 import { groupBy, uniqBy } from "lodash";
 import { readFileSync, writeFileSync } from "fs";
-import insertIgnore from "./insertIgnore";
+import insertIgnores from "./insertIgnores";
 import commit from "./commitAll";
 import prettierFormat from "./prettierFormat";
 import { getFilePath, getDiagnostics } from "./tsCompilerHelpers";
@@ -23,7 +23,7 @@ export default async function compile(
     d => d.file!.fileName
   );
 
-  Object.keys(diagnosticsGroupedByFile).forEach(async (fileName, i, arr) => {
+  Object.keys(diagnosticsGroupedByFile).forEach((fileName, i, arr) => {
     const fileDiagnostics = uniqBy(diagnosticsGroupedByFile[fileName], d =>
       d.file!.getLineAndCharacterOfPosition(d.start!)
     ).reverse();
@@ -34,11 +34,7 @@ export default async function compile(
     );
     try {
       const filePath = getFilePath(paths, fileDiagnostics[0]);
-      let codeSplitByLine = readFileSync(filePath, "utf8").split("\n");
-      fileDiagnostics.forEach((diagnostic, _errorIndex) => {
-        codeSplitByLine = insertIgnore(diagnostic, codeSplitByLine, includeJSX);
-      });
-      const fileData = codeSplitByLine.join("\n");
+      const fileData = insertIgnores(readFileSync(filePath, "utf8"), fileDiagnostics, includeJSX);
       const formattedFileData = prettierFormat(fileData, paths.rootDir);
       writeFileSync(filePath, formattedFileData);
       successFiles.push(fileName);
