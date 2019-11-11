@@ -2,7 +2,6 @@ import program from "commander";
 import { createTSCompiler } from "./tsCompilerHelpers";
 import stripComments from "./stripCommentsRunner";
 import ignoreErrors from "./ignoreErrorsRunner";
-import ignoreFileErrors from "./ignoreFileErrorsRunner";
 import convertCodebase from "./convertCodebase";
 import checkTypes from "./checkRunner";
 import stripUncheckedFlowTypes from "./stripUncheckedFlowTypes/runner";
@@ -111,14 +110,6 @@ program
       ignoreErrors(paths, !!cmd.commit, cmd.includeJSX);
     }
   );
-
-program
-  .command("ignore-file-errors")
-  .option("-c, --commit")
-  .action((cmd: { commit: boolean | undefined }) => {
-    console.log("Inserting custom ts-ignore pragmas...");
-    ignoreFileErrors(filePaths, !!cmd.commit);
-  });
 
 program
   .command("check-types")
