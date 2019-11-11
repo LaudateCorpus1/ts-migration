@@ -17,10 +17,15 @@ const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const collectFiles_1 = __importDefault(require("./collectFiles"));
 function createTSCompiler(rootDir) {
-    const fileName = path_1.default.join(rootDir, "tsconfig.json");
-    const optionsFile = fs_1.readFileSync(fileName, "utf8");
-    const configJSON = typescript_1.default.parseConfigFileTextToJson(fileName, optionsFile);
-    const compilerOptions = typescript_1.default.convertCompilerOptionsFromJson(configJSON.config.compilerOptions, rootDir);
+    const configPath = path_1.default.join(rootDir, "tsconfig.json");
+    const configJSON = typescript_1.default.readConfigFile(configPath, typescript_1.default.sys.readFile);
+    let extendedCompilerOptions = {};
+    if (configJSON.config.extends) {
+        const extendedConfigPath = path_1.default.join(rootDir, configJSON.config.extends);
+        const extendedConfigJSON = typescript_1.default.readConfigFile(extendedConfigPath, typescript_1.default.sys.readFile);
+        extendedCompilerOptions = extendedConfigJSON.config.compilerOptions;
+    }
+    const compilerOptions = typescript_1.default.convertCompilerOptionsFromJson(Object.assign(Object.assign({}, extendedCompilerOptions), configJSON.config.compilerOptions), rootDir);
     return {
         configJSON,
         compilerOptions
@@ -33,7 +38,7 @@ function getDiagnostics(paths) {
         const { compilerOptions } = createTSCompiler(paths.rootDir);
         const program = typescript_1.default.createProgram(files, compilerOptions.options);
         const diagnostics = typescript_1.default.getPreEmitDiagnostics(program);
-        return diagnostics;
+        return diagnostics.filter(diagnostic => paths.include.some(includedPath => diagnostic.file.fileName.includes(includedPath)));
     });
 }
 exports.getDiagnostics = getDiagnostics;

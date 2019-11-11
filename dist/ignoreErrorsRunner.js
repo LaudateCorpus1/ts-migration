@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = require("lodash");
 const fs_1 = require("fs");
-const insertIgnore_1 = __importDefault(require("./insertIgnore"));
+const insertIgnores_1 = __importDefault(require("./insertIgnores"));
 const commitAll_1 = __importDefault(require("./commitAll"));
 const prettierFormat_1 = __importDefault(require("./prettierFormat"));
 const tsCompilerHelpers_1 = require("./tsCompilerHelpers");
@@ -25,16 +25,12 @@ function compile(paths, shouldCommit, includeJSX) {
         const diagnostics = yield tsCompilerHelpers_1.getDiagnostics(paths);
         const diagnosticsWithFile = diagnostics.filter(d => !!d.file && !paths.exclude.some(e => d.file.fileName.includes(e)));
         const diagnosticsGroupedByFile = lodash_1.groupBy(diagnosticsWithFile, d => d.file.fileName);
-        Object.keys(diagnosticsGroupedByFile).forEach((fileName, i, arr) => __awaiter(this, void 0, void 0, function* () {
+        Object.keys(diagnosticsGroupedByFile).forEach((fileName, i, arr) => {
             const fileDiagnostics = lodash_1.uniqBy(diagnosticsGroupedByFile[fileName], d => d.file.getLineAndCharacterOfPosition(d.start)).reverse();
             console.log(`${i} of ${arr.length - 1}: Ignoring ${fileDiagnostics.length} ts-error(s) in ${fileName}`);
             try {
                 const filePath = tsCompilerHelpers_1.getFilePath(paths, fileDiagnostics[0]);
-                let codeSplitByLine = fs_1.readFileSync(filePath, "utf8").split("\n");
-                fileDiagnostics.forEach((diagnostic, _errorIndex) => {
-                    codeSplitByLine = insertIgnore_1.default(diagnostic, codeSplitByLine, includeJSX);
-                });
-                const fileData = codeSplitByLine.join("\n");
+                const fileData = insertIgnores_1.default(fs_1.readFileSync(filePath, "utf8"), fileDiagnostics, includeJSX);
                 const formattedFileData = prettierFormat_1.default(fileData, paths.rootDir);
                 fs_1.writeFileSync(filePath, formattedFileData);
                 successFiles.push(fileName);
@@ -43,7 +39,7 @@ function compile(paths, shouldCommit, includeJSX) {
                 console.log(e);
                 errorFiles.push(fileName);
             }
-        }));
+        });
         if (shouldCommit) {
             yield commitAll_1.default("Ignore errors", paths);
         }

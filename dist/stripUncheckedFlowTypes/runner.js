@@ -11,14 +11,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
+const prettier = __importStar(require("prettier"));
 const collectFiles_1 = __importDefault(require("../collectFiles"));
 const util_1 = require("../util");
 const commitAll_1 = __importDefault(require("../commitAll"));
 const containsFlowPragma_1 = __importDefault(require("../containsFlowPragma"));
 const check_1 = __importDefault(require("./check"));
 const rewrite_1 = __importDefault(require("./rewrite"));
+function prettierFormat(code, filepath) {
+    return prettier.format(code, Object.assign(Object.assign({}, prettier.resolveConfig.sync(filepath)), { filepath }));
+}
 function run(filePaths, shouldCommit) {
     return __awaiter(this, void 0, void 0, function* () {
         const files = yield util_1.asyncFilter(yield collectFiles_1.default(filePaths), (path) => __awaiter(this, void 0, void 0, function* () { return !(yield containsFlowPragma_1.default(path)); }));
@@ -39,7 +50,8 @@ function run(filePaths, shouldCommit) {
                     return;
                 }
                 console.log(`- Stripping Flow types...`);
-                fs_1.default.writeFileSync(path, rewrite_1.default(code));
+                const newCode = prettierFormat(rewrite_1.default(code), path);
+                fs_1.default.writeFileSync(path, newCode);
                 numFilesMatched += 1;
             }
             catch (e) {
