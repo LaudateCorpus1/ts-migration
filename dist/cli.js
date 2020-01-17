@@ -7,8 +7,10 @@ const commander_1 = __importDefault(require("commander"));
 const tsCompilerHelpers_1 = require("./tsCompilerHelpers");
 const stripCommentsRunner_1 = __importDefault(require("./stripCommentsRunner"));
 const ignoreErrorsRunner_1 = __importDefault(require("./ignoreErrorsRunner"));
+const removeIgnoresRunner_1 = __importDefault(require("./removeIgnoresRunner"));
 const convertCodebase_1 = __importDefault(require("./convertCodebase"));
 const runner_1 = __importDefault(require("./stripUncheckedFlowTypes/runner"));
+const removeUnneededIgnoresRunner_1 = __importDefault(require("./removeUnneededIgnoresRunner"));
 const rootDir = process.cwd();
 const { configJSON } = tsCompilerHelpers_1.createTSCompiler(rootDir);
 const filePaths = {
@@ -51,6 +53,16 @@ commander_1.default
     const paths = Object.assign(Object.assign({}, filePaths), { exclude: [...filePaths.exclude, ...(cmd.exclude || [])] });
     console.log(paths);
     ignoreErrorsRunner_1.default(paths, !!cmd.commit, !cmd.noIgnoreJSX);
+});
+commander_1.default.command("remove-ignores").option("--check").action((cmd) => {
+    console.log("Stripping @ts-ignore...");
+    console.log(filePaths);
+    if (cmd.check) {
+        removeUnneededIgnoresRunner_1.default(filePaths);
+    }
+    else {
+        removeIgnoresRunner_1.default(filePaths);
+    }
 });
 commander_1.default
     .command("strip-unchecked-flow-types")
