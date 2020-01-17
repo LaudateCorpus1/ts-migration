@@ -5,6 +5,7 @@ import ignoreErrors from "./ignoreErrorsRunner";
 import removeIgnores from "./removeIgnoresRunner";
 import convertCodebase from "./convertCodebase";
 import stripUncheckedFlowTypes from "./stripUncheckedFlowTypes/runner";
+import removeUnneededIgnores from "./removeUnneededIgnoresRunner";
 
 const rootDir = process.cwd();
 
@@ -113,10 +114,14 @@ program
     }
   );
 
-program.command("remove-ignores").action(() => {
+program.command("remove-ignores").option("--check").action((cmd: {check: boolean}) => {
   console.log("Stripping @ts-ignore...");
   console.log(filePaths);
-  removeIgnores(filePaths);
+  if (cmd.check) {
+    removeUnneededIgnores(filePaths);
+  } else {
+    removeIgnores(filePaths);
+  }
 });
 
 program
