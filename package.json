@@ -42,7 +42,7 @@
     "lodash": "^4.17.15",
     "prettier": "^1.18.2",
     "recast": "^0.18.2",
-    "simple-git": "^1.124.0",
+    "simple-git": "^3.5.0",
     "tsutils": "^3.17.1"
   },
   "devDependencies": {
